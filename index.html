@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Gesture Flappy Bird</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- MediaPipe Dependencies -->
+    <script src="./lib/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="./lib/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="./lib/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="./lib/hands.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="game-wrapper">
+            <canvas id="gameCanvas" width="480" height="640"></canvas>
+            <div id="ui-layer">
+                <div id="start-screen" class="screen active">
+                    <h1>Flappy Hands</h1>
+                    <p>Pinch thumb & index to Start & Jump!</p>
+                    <button id="start-btn">Start Game</button>
+                </div>
+                <div id="game-over-screen" class="screen">
+                    <h1>Game Over</h1>
+                    <p>Score: <span id="final-score">0</span></p>
+                    <button id="restart-btn">Try Again</button>
+                </div>
+                <div id="score-display">0</div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="camera-wrapper">
+                <video id="input_video" class="input_video"></video>
+                <canvas id="output_canvas" class="output_canvas"></canvas>
+                <div class="status">Status: <span id="status-text">Initializing...</span></div>
+            </div>
+
+            <div class="instructions">
+                <h3>🎮 游戏控制</h3>
+                <div class="instruction-item">
+                    <span class="gesture-icon">🤏</span>
+                    <div class="instruction-text">
+                        <strong>捏合</strong>
+                        <p>拇指和食指捏在一起 → 跳跃/开始</p>
+                    </div>
+                </div>
+                <div class="instruction-item">
+                    <span class="gesture-icon">👆</span>
+                    <div class="instruction-text">
+                        <strong>食指向上</strong>
+                        <p>食指伸直，其他四指握拳 → 悬停</p>
+                    </div>
+                </div>
+                <div class="tip">
+                    💡 提示：光线充足时识别更准确
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script src="hand_tracking.js"></script>
+</body>
+
+</html>

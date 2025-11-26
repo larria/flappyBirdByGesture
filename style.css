@@ -1,0 +1,203 @@
+:root {
+    --primary-color: #4CAF50;
+    --bg-color: #1a1a1a;
+    --text-color: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    align-items: flex-start;
+}
+
+.game-wrapper {
+    position: relative;
+    border: 4px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+canvas#gameCanvas {
+    display: block;
+    background-color: #70c5ce;
+    /* Sky blue */
+}
+
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: auto;
+}
+
+.screen.active {
+    opacity: 1;
+}
+
+h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #fff;
+    text-shadow: 2px 2px 0 #000;
+}
+
+p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+button {
+    padding: 12px 24px;
+    font-size: 1.2rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.1s, background-color 0.2s;
+}
+
+button:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+}
+
+#score-display {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 0 #000;
+    z-index: 10;
+}
+
+.camera-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #333;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.input_video {
+    display: none;
+    /* Hide raw video, we draw to canvas */
+}
+
+.output_canvas {
+    width: 320px;
+    height: 240px;
+    background: #000;
+    border-radius: 4px;
+    transform: scaleX(-1);
+    /* Mirror effect */
+}
+
+.status {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.instructions {
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 8px;
+    max-width: 600px;
+}
+
+.instructions h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+    color: #fff;
+    text-align: center;
+}
+
+.instruction-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px;
+    background: #1a1a1a;
+    border-radius: 6px;
+    gap: 12px;
+}
+
+.gesture-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.instruction-text {
+    flex: 1;
+}
+
+.instruction-text strong {
+    display: block;
+    color: #4CAF50;
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+}
+
+.instruction-text p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #ccc;
+}
+
+.tip {
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(76, 175, 80, 0.1);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #aaa;
+}
