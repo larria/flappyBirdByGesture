@@ -1,8 +1,9 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// --- 1. 游戏配置 & 基准数值 ---
 // Game State
-let gameState = 'START'; // START, COUNTDOWN, PLAYING, GAMEOVER
+let gameState = 'START';
 let frames = 0;
 let score = 0;
 let highScore = localStorage.getItem('flappyHighScore') || 0;
@@ -17,15 +18,26 @@ const gameOverScreen = document.getElementById('game-over-screen');
 const startBtn = document.getElementById('start-btn');
 const restartBtn = document.getElementById('restart-btn');
 
-// Game Settings
-const GRAVITY = 0.12; // Reduced from 0.25 for easier difficulty
-const JUMP_STRENGTH = -4.5;
-const PIPE_SPEED = 2;
-const PIPE_SPAWN_RATE = 200; // Frames
-const INITIAL_PIPE_GAP = 220; // Easier start
-const MIN_PIPE_GAP = 150; // Hardest difficulty (original value)
+// --- 物理引擎设置 (关键修改点) ---
+// 基准屏幕高度 (原本的设计高度)
+const BASE_HEIGHT = 640;
 
-// Bird Entity
+// 基准物理数值
+const BASE_GRAVITY = 0.12; 
+const BASE_JUMP = -4.5;
+const BASE_PIPE_GAP = 220;
+const BASE_MIN_GAP = 150;
+
+// 实际运行时使用的物理数值 (会随屏幕高度变化)
+let currentGravity = BASE_GRAVITY;
+let currentJumpStrength = BASE_JUMP;
+let currentInitialGap = BASE_PIPE_GAP;
+let currentMinGap = BASE_MIN_GAP;
+
+const PIPE_SPEED = 2; // 水平速度暂时保持不变，避免手机上太快反应不过来
+const PIPE_SPAWN_RATE = 200;
+
+// --- Bird Entity ---
 const bird = {
     x: 50,
     y: 150,
@@ -56,9 +68,10 @@ const bird = {
 
     update: function () {
         if (window.isHovering) {
-            this.velocity = 0; // Suspend gravity
+            this.velocity = 0;
         } else {
-            this.velocity += GRAVITY;
+            // [修改] 使用动态重力
+            this.velocity += currentGravity;
         }
         this.y += this.velocity;
 
@@ -76,41 +89,41 @@ const bird = {
     },
 
     flap: function () {
-        this.velocity = JUMP_STRENGTH;
+        // [修改] 使用动态跳跃力度
+        this.velocity = currentJumpStrength;
     },
 
     reset: function () {
-        this.y = 150;
+        this.y = canvas.height / 2 - 50;
         this.velocity = 0;
     }
 };
 
-// Pipes
+// --- Pipes ---
 const pipes = {
     items: [],
 
     draw: function () {
-        ctx.fillStyle = '#2E8B57'; // SeaGreen
+        ctx.fillStyle = '#2E8B57';
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
 
         for (let pipe of this.items) {
-            // Top pipe
             ctx.fillRect(pipe.x, 0, pipe.w, pipe.top);
             ctx.strokeRect(pipe.x, 0, pipe.w, pipe.top);
 
-            // Bottom pipe
             ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.w, pipe.bottom);
             ctx.strokeRect(pipe.x, canvas.height - pipe.bottom, pipe.w, pipe.bottom);
         }
     },
 
     update: function () {
-        // Add new pipe
         if (frames % PIPE_SPAWN_RATE === 0) {
-            // Calculate dynamic gap based on score
-            // Decrease gap by 5 for every 2 points, until MIN_PIPE_GAP
-            let currentGap = Math.max(MIN_PIPE_GAP, INITIAL_PIPE_GAP - (Math.floor(score / 2) * 5));
+            // [修改] Gap 也需要根据屏幕高度动态调整，否则在高屏幕上缝隙会显得太小
+            // 难度计算：每得2分减少5px的缝隙 (这里也按比例缩放减少量)
+            const scoreBasedReduction = (Math.floor(score / 2) * 5) * (canvas.height / BASE_HEIGHT);
+            
+            let currentGap = Math.max(currentMinGap, currentInitialGap - scoreBasedReduction);
 
             const topHeight = Math.random() * (canvas.height - currentGap - 100) + 50;
             this.items.push({
@@ -122,28 +135,22 @@ const pipes = {
             });
         }
 
-        // Move pipes
         for (let i = 0; i < this.items.length; i++) {
             let pipe = this.items[i];
             pipe.x -= PIPE_SPEED;
 
-            // Collision Detection
-            // X axis overlap
             if (bird.x + bird.w > pipe.x && bird.x < pipe.x + pipe.w) {
-                // Y axis overlap (hitting top or bottom pipe)
                 if (bird.y < pipe.top || bird.y + bird.h > canvas.height - pipe.bottom) {
                     gameOver();
                 }
             }
 
-            // Score update
             if (pipe.x + pipe.w < bird.x && !pipe.passed) {
                 score++;
                 scoreDisplay.innerText = score;
                 pipe.passed = true;
             }
 
-            // Remove off-screen pipes
             if (pipe.x + pipe.w < 0) {
                 this.items.shift();
                 i--;
@@ -156,9 +163,45 @@ const pipes = {
     }
 };
 
-// Game Loop
+// --- 2. 响应式与物理计算 ---
+function resizeCanvas() {
+    if (window.innerWidth <= 768) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    } else {
+        canvas.width = 480;
+        canvas.height = 640;
+    }
+
+    // [关键逻辑] 计算高度缩放比例
+    // 如果屏幕高度是 1280 (640的2倍)，那么 scaleRatio 就是 2
+    let scaleRatio = canvas.height / BASE_HEIGHT;
+    
+    // 限制最小比例，防止在极扁的屏幕上游戏无法进行
+    scaleRatio = Math.max(0.8, scaleRatio); 
+
+    // 根据比例更新物理参数
+    // 重力和跳跃力线性放大，保证在屏幕上的移动“视觉速度”一致
+    currentGravity = BASE_GRAVITY * scaleRatio;
+    currentJumpStrength = BASE_JUMP * scaleRatio;
+    
+    // 管子间隙也需要放大，否则高屏幕上管子间距太难钻
+    currentInitialGap = BASE_PIPE_GAP * scaleRatio;
+    currentMinGap = BASE_MIN_GAP * scaleRatio;
+
+    // 如果游戏还没开始，重置位置确保鸟在视野内
+    if (gameState === 'START') {
+        bird.reset();
+    }
+}
+
+// 初始化
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+
+// --- 3. 游戏主循环 ---
 function loop(timestamp) {
-    // Clear canvas
     ctx.fillStyle = '#70c5ce';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -167,7 +210,6 @@ function loop(timestamp) {
         pipes.update();
         frames++;
     } else if (gameState === 'COUNTDOWN') {
-        // Handle Countdown
         if (!lastTime) lastTime = timestamp;
         const deltaTime = timestamp - lastTime;
 
@@ -179,7 +221,6 @@ function loop(timestamp) {
             }
         }
 
-        // Draw Countdown
         ctx.fillStyle = 'white';
         ctx.font = '80px Arial';
         ctx.textAlign = 'center';
@@ -201,7 +242,6 @@ function loop(timestamp) {
     requestAnimationFrame(loop);
 }
 
-// Controls
 function triggerFlap() {
     if (gameState === 'PLAYING') {
         bird.flap();
@@ -215,10 +255,11 @@ function startGame() {
 
     gameState = 'COUNTDOWN';
     countdownValue = 3;
-    lastTime = 0; // Reset timer
+    lastTime = 0;
 
     startScreen.classList.remove('active');
     gameOverScreen.classList.remove('active');
+    
     bird.reset();
     pipes.reset();
     score = 0;
@@ -236,20 +277,16 @@ function gameOver() {
     }
 }
 
-// Event Listeners
 startBtn.addEventListener('click', startGame);
 restartBtn.addEventListener('click', startGame);
 
-// Keyboard fallback for testing
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {
         triggerFlap();
     }
 });
 
-// Start loop
 requestAnimationFrame(loop);
 
-// Expose trigger for hand tracking
 window.triggerFlap = triggerFlap;
 window.startGame = startGame;

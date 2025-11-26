@@ -8,6 +8,10 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    /* 禁止移动端长按选中文本 */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 body {
@@ -19,6 +23,8 @@ body {
     align-items: center;
     min-height: 100vh;
     overflow: hidden;
+    /* 防止移动端下拉刷新 */
+    overscroll-behavior: none;
 }
 
 .container {
@@ -26,6 +32,9 @@ body {
     gap: 20px;
     padding: 20px;
     align-items: flex-start;
+    width: 100%;
+    height: 100vh;
+    justify-content: center;
 }
 
 .game-wrapper {
@@ -34,12 +43,12 @@ body {
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    /* 桌面端默认尺寸，或者由 JS canvas 撑开 */
 }
 
 canvas#gameCanvas {
     display: block;
     background-color: #70c5ce;
-    /* Sky blue */
 }
 
 #ui-layer {
@@ -49,6 +58,7 @@ canvas#gameCanvas {
     width: 100%;
     height: 100%;
     pointer-events: none;
+    z-index: 10;
 }
 
 .screen {
@@ -71,16 +81,26 @@ canvas#gameCanvas {
     opacity: 1;
 }
 
+.mobile-hint {
+    display: none;
+    /* 桌面端隐藏 */
+    margin-top: 10px;
+    color: #ffd700;
+    font-size: 1rem;
+}
+
 h1 {
     font-size: 3rem;
     margin-bottom: 1rem;
     color: #fff;
     text-shadow: 2px 2px 0 #000;
+    text-align: center;
 }
 
 p {
     font-size: 1.2rem;
     margin-bottom: 2rem;
+    text-align: center;
 }
 
 button {
@@ -92,6 +112,8 @@ button {
     border-radius: 4px;
     cursor: pointer;
     transition: transform 0.1s, background-color 0.2s;
+    pointer-events: auto;
+    /* 确保能点击 */
 }
 
 button:hover {
@@ -111,6 +133,15 @@ button:hover {
     z-index: 10;
 }
 
+/* --- 右侧面板 (摄像头 + 说明) --- */
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 20;
+    /* 确保摄像头在最上层 */
+}
+
 .camera-wrapper {
     display: flex;
     flex-direction: column;
@@ -118,11 +149,11 @@ button:hover {
     background: #333;
     padding: 10px;
     border-radius: 8px;
+    transition: all 0.3s ease;
 }
 
 .input_video {
     display: none;
-    /* Hide raw video, we draw to canvas */
 }
 
 .output_canvas {
@@ -131,19 +162,12 @@ button:hover {
     background: #000;
     border-radius: 4px;
     transform: scaleX(-1);
-    /* Mirror effect */
 }
 
 .status {
     margin-top: 10px;
     font-size: 0.9rem;
     color: #ccc;
-}
-
-.right-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
 }
 
 .instructions {
@@ -200,4 +224,82 @@ button:hover {
     border-radius: 4px;
     font-size: 0.85rem;
     color: #aaa;
+}
+
+/* =========================================
+   📱 移动端响应式样式
+   ========================================= */
+@media (max-width: 768px) {
+    .container {
+        padding: 0;
+        gap: 0;
+        display: block;
+        /* 取消 flex，让元素重叠或绝对定位 */
+    }
+
+    /* 1. 游戏界面全屏 */
+    .game-wrapper {
+        width: 100vw;
+        height: 100vh;
+        border: none;
+        border-radius: 0;
+    }
+
+    canvas#gameCanvas {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* 2. 摄像头模块：缩小并悬浮在右上角 */
+    .right-panel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: auto;
+        gap: 0;
+    }
+
+    .camera-wrapper {
+        width: 100px;
+        /* 缩小尺寸 */
+        padding: 4px;
+        background: rgba(0, 0, 0, 0.5);
+        /* 半透明背景 */
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .output_canvas {
+        width: 100% !important;
+        /* 强制覆盖原有宽度 */
+        height: auto !important;
+        /* 保持比例 */
+        border-radius: 2px;
+    }
+
+    .status {
+        display: none;
+        /* 手机上隐藏状态文字，太占地 */
+    }
+
+    /* 3. 隐藏说明书，避免遮挡游戏 */
+    .instructions {
+        display: none;
+    }
+
+    /* UI 调整 */
+    h1 {
+        font-size: 2rem;
+    }
+    p {
+        font-size: 1rem;
+    }
+    .mobile-hint {
+        display: block;
+    }
+
+    #score-display {
+        top: 50px;
+        /* 避开可能存在的刘海或摄像头区域 */
+        font-size: 4rem;
+    }
 }

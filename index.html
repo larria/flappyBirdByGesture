@@ -3,27 +3,28 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 修改：添加 user-scalable=no, viewport-fit=cover 以适配移动端全屏体验 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Hand Gesture Flappy Bird</title>
     <link rel="stylesheet" href="style.css">
     <!-- MediaPipe Dependencies -->
     <script src="./lib/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="./lib/control_utils.js"
-        crossorigin="anonymous"></script>
-    <script src="./lib/drawing_utils.js"
-        crossorigin="anonymous"></script>
+    <script src="./lib/control_utils.js" crossorigin="anonymous"></script>
+    <script src="./lib/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="./lib/hands.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
     <div class="container">
         <div class="game-wrapper">
-            <canvas id="gameCanvas" width="480" height="640"></canvas>
+            <canvas id="gameCanvas"></canvas> <!-- 移除内联宽高，交由 JS 控制 -->
             <div id="ui-layer">
                 <div id="start-screen" class="screen active">
                     <h1>Flappy Hands</h1>
                     <p>Pinch thumb & index to Start & Jump!</p>
                     <button id="start-btn">Start Game</button>
+                    <!-- 移动端显示的简易提示 -->
+                    <p class="mobile-hint">🤏 捏合手指跳跃</p>
                 </div>
                 <div id="game-over-screen" class="screen">
                     <h1>Game Over</h1>
@@ -38,6 +39,7 @@
             <div class="camera-wrapper">
                 <video id="input_video" class="input_video"></video>
                 <canvas id="output_canvas" class="output_canvas"></canvas>
+                <!-- 状态文字在手机模式下可以隐藏或简化 -->
                 <div class="status">Status: <span id="status-text">Initializing...</span></div>
             </div>
 
