@@ -53,7 +53,7 @@ function onResults(results) {
             if (indexExtended && middleCurled && ringCurled && pinkyCurled) {
                 if (!window.isHovering) {
                     window.isHovering = true;
-                    statusText.innerText = "Hover Mode (Pointing Up)";
+                    statusText.innerText = "Glide Mode (Pointing Up)";
                     statusText.style.color = "#00FFFF";
                 }
 

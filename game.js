@@ -23,16 +23,18 @@ const restartBtn = document.getElementById('restart-btn');
 const BASE_HEIGHT = 640;
 
 // 基准物理数值
-const BASE_GRAVITY = 0.12; 
+const BASE_GRAVITY = 0.12;
 const BASE_JUMP = -4.5;
 const BASE_PIPE_GAP = 220;
 const BASE_MIN_GAP = 150;
+const BASE_GLIDE_SPEED = 0.3;
 
 // 实际运行时使用的物理数值 (会随屏幕高度变化)
 let currentGravity = BASE_GRAVITY;
 let currentJumpStrength = BASE_JUMP;
 let currentInitialGap = BASE_PIPE_GAP;
 let currentMinGap = BASE_MIN_GAP;
+let currentGlideSpeed = BASE_GLIDE_SPEED;
 
 const PIPE_SPEED = 2; // 水平速度暂时保持不变，避免手机上太快反应不过来
 const PIPE_SPAWN_RATE = 200;
@@ -68,9 +70,10 @@ const bird = {
 
     update: function () {
         if (window.isHovering) {
-            this.velocity = 0;
+            // [修改] 滑翔模式：设定为固定的向下速度，实现匀速缓慢下降
+            this.velocity = currentGlideSpeed;
         } else {
-            // [修改] 使用动态重力
+            // [原有逻辑] 普通模式：使用动态重力加速下落
             this.velocity += currentGravity;
         }
         this.y += this.velocity;
@@ -122,7 +125,7 @@ const pipes = {
             // [修改] Gap 也需要根据屏幕高度动态调整，否则在高屏幕上缝隙会显得太小
             // 难度计算：每得2分减少5px的缝隙 (这里也按比例缩放减少量)
             const scoreBasedReduction = (Math.floor(score / 2) * 5) * (canvas.height / BASE_HEIGHT);
-            
+
             let currentGap = Math.max(currentMinGap, currentInitialGap - scoreBasedReduction);
 
             const topHeight = Math.random() * (canvas.height - currentGap - 100) + 50;
@@ -176,15 +179,16 @@ function resizeCanvas() {
     // [关键逻辑] 计算高度缩放比例
     // 如果屏幕高度是 1280 (640的2倍)，那么 scaleRatio 就是 2
     let scaleRatio = canvas.height / BASE_HEIGHT;
-    
+
     // 限制最小比例，防止在极扁的屏幕上游戏无法进行
-    scaleRatio = Math.max(0.8, scaleRatio); 
+    scaleRatio = Math.max(0.8, scaleRatio);
 
     // 根据比例更新物理参数
-    // 重力和跳跃力线性放大，保证在屏幕上的移动“视觉速度”一致
+    // 重力、跳跃力、滑翔速度线性放大，保证在屏幕上的移动“视觉速度”一致
     currentGravity = BASE_GRAVITY * scaleRatio;
     currentJumpStrength = BASE_JUMP * scaleRatio;
-    
+    currentGlideSpeed = BASE_GLIDE_SPEED * scaleRatio;
+
     // 管子间隙也需要放大，否则高屏幕上管子间距太难钻
     currentInitialGap = BASE_PIPE_GAP * scaleRatio;
     currentMinGap = BASE_MIN_GAP * scaleRatio;
@@ -259,7 +263,7 @@ function startGame() {
 
     startScreen.classList.remove('active');
     gameOverScreen.classList.remove('active');
-    
+
     bird.reset();
     pipes.reset();
     score = 0;

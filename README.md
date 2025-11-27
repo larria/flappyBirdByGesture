@@ -1,6 +1,6 @@
-# 手势控制 Flappy Bird 游戏
+# Flappy Hands
 
-![Flappy Bird by Gesture](./demo.gif)<!-- 如果有演示图可以放在这里 -->
+![Flappy Hands](./demo.gif)<!-- 如果有演示图可以放在这里 -->
 
 ## 项目介绍
 

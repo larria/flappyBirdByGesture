@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
     <meta charset="UTF-8">
-    <!-- 修改：添加 user-scalable=no, viewport-fit=cover 以适配移动端全屏体验 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Hand Gesture Flappy Bird</title>
+    <title>Flappy Hands</title>
     <link rel="stylesheet" href="style.css">
     <!-- MediaPipe Dependencies -->
     <script src="./lib/camera_utils.js" crossorigin="anonymous"></script>
@@ -17,7 +16,7 @@
 <body>
     <div class="container">
         <div class="game-wrapper">
-            <canvas id="gameCanvas"></canvas> <!-- 移除内联宽高，交由 JS 控制 -->
+            <canvas id="gameCanvas"></canvas>
             <div id="ui-layer">
                 <div id="start-screen" class="screen active">
                     <h1>Flappy Hands</h1>
@@ -39,7 +38,6 @@
             <div class="camera-wrapper">
                 <video id="input_video" class="input_video"></video>
                 <canvas id="output_canvas" class="output_canvas"></canvas>
-                <!-- 状态文字在手机模式下可以隐藏或简化 -->
                 <div class="status">Status: <span id="status-text">Initializing...</span></div>
             </div>
 
@@ -56,7 +54,7 @@
                     <span class="gesture-icon">👆</span>
                     <div class="instruction-text">
                         <strong>食指向上</strong>
-                        <p>食指伸直，其他四指握拳 → 悬停</p>
+                        <p>食指伸直，其他四指握拳 → 滑翔</p>
                     </div>
                 </div>
                 <div class="tip">
