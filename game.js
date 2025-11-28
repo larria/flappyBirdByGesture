@@ -12,6 +12,80 @@ let lastScore = 0;
 let countdownValue = 3;
 let lastTime = 0;
 
+// --- Audio Controller ---
+const audio = {
+    bgmHome: new Audio('./assets/audio/bgm-home.mp3'),
+    bgmGame: new Audio('./assets/audio/bgm-gaming.mp3'),
+    sfxReady: new Audio('./assets/audio/sfx-readygo.mp3'),
+    sfxJump: new Audio('./assets/audio/sfx-jump.ogg'),
+    sfxGlide: new Audio('./assets/audio/sfx-glid.ogg'),
+    sfxNewRecordGame: new Audio('./assets/audio/sfx-gaming-newhigh-score.ogg'),
+    sfxGameOver: new Audio('./assets/audio/sfx-gameover.ogg'),
+    sfxNewRecordResult: new Audio('./assets/audio/sfx-result-newhigh-score.ogg'),
+
+    muted: localStorage.getItem('flappyMuted') === 'true',
+
+    init: function () {
+        this.bgmHome.loop = true;
+        this.bgmGame.loop = true;
+        this.sfxGlide.loop = true;
+        this.updateMuteState();
+
+        // Try to play home BGM (might be blocked until interaction)
+        this.playBGM('home');
+    },
+
+    updateMuteState: function () {
+        const volume = this.muted ? 0 : 1;
+        Object.values(this).forEach(val => {
+            if (val instanceof Audio) val.volume = volume;
+        });
+        muteBtn.innerText = this.muted ? '🔇' : '🔊';
+        localStorage.setItem('flappyMuted', this.muted);
+    },
+
+    toggleMute: function () {
+        this.muted = !this.muted;
+        this.updateMuteState();
+
+        // Resume BGM if unmuted and state requires it
+        if (!this.muted) {
+            if (gameState === 'START') this.playBGM('home');
+            else if (gameState === 'PLAYING') this.playBGM('game');
+        }
+    },
+
+    playBGM: function (type) {
+        // Stop all BGMs
+        this.bgmHome.pause();
+        this.bgmGame.pause();
+        this.bgmHome.currentTime = 0;
+        this.bgmGame.currentTime = 0;
+
+        if (type === 'home') this.bgmHome.play().catch(e => console.log('Audio autoplay blocked'));
+        if (type === 'game') this.bgmGame.play().catch(e => console.log('Audio autoplay blocked'));
+    },
+
+    playSFX: function (name) {
+        if (this.muted) return;
+        const sfx = this[name];
+        if (sfx) {
+            sfx.currentTime = 0;
+            sfx.play().catch(e => { });
+        }
+    },
+
+    startGlide: function () {
+        if (this.muted) return;
+        if (this.sfxGlide.paused) this.sfxGlide.play().catch(e => { });
+    },
+
+    stopGlide: function () {
+        this.sfxGlide.pause();
+        this.sfxGlide.currentTime = 0;
+    }
+};
+
 // --- Helper: Get Week Number ---
 function getWeekNumber(d) {
     d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -48,6 +122,7 @@ const gameOverScreen = document.getElementById('game-over-screen');
 const startBtn = document.getElementById('start-btn');
 const restartBtn = document.getElementById('restart-btn');
 const newRecordMsg = document.getElementById('new-record-msg');
+const muteBtn = document.getElementById('mute-btn');
 
 // New UI Elements
 const startWeeklyBest = document.getElementById('start-weekly-best');
@@ -110,9 +185,11 @@ const bird = {
         if (window.isHovering) {
             // [修改] 滑翔模式：设定为固定的向下速度，实现匀速缓慢下降
             this.velocity = currentGlideSpeed;
+            audio.startGlide();
         } else {
             // [原有逻辑] 普通模式：使用动态重力加速下落
             this.velocity += currentGravity;
+            audio.stopGlide();
         }
         this.y += this.velocity;
 
@@ -132,6 +209,7 @@ const bird = {
     flap: function () {
         // [修改] 使用动态跳跃力度
         this.velocity = currentJumpStrength;
+        audio.playSFX('sfxJump');
     },
 
     reset: function () {
@@ -195,6 +273,10 @@ const pipes = {
                     scoreDisplay.classList.add('new-record-pulse');
                     weeklyBestDisplay.classList.add('new-record-highlight');
                     hudWeeklyBest.innerText = score;
+                    // Play sound only once when record is first broken
+                    if (score === weeklyHighScore + 1) {
+                        audio.playSFX('sfxNewRecordGame');
+                    }
                 }
 
                 pipe.passed = true;
@@ -248,6 +330,7 @@ function resizeCanvas() {
 // 初始化
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
+audio.init();
 
 // Update Initial UI
 startWeeklyBest.innerText = weeklyHighScore;
@@ -271,8 +354,12 @@ function loop(timestamp) {
         if (deltaTime >= 1000) {
             countdownValue--;
             lastTime = timestamp;
+            if (countdownValue > 0) {
+                // Optional: beep for 3, 2, 1
+            }
             if (countdownValue <= 0) {
                 gameState = 'PLAYING';
+                audio.playBGM('game');
             }
         }
 
@@ -323,10 +410,15 @@ function startGame() {
     hudWeeklyBest.innerText = weeklyHighScore; // Reset HUD to current high score
     scoreDisplay.classList.remove('new-record-pulse'); // Reset effects
     weeklyBestDisplay.classList.remove('new-record-highlight');
+
+    audio.playBGM('none'); // Stop home music
+    audio.playSFX('sfxReady');
 }
 
 function gameOver() {
     gameState = 'GAMEOVER';
+    audio.stopGlide();
+    audio.playBGM('none'); // Stop game music
     finalScoreSpan.innerText = score;
     gameOverScreen.classList.add('active');
 
@@ -345,8 +437,10 @@ function gameOver() {
 
     if (isNewRecord) {
         newRecordMsg.classList.remove('hidden');
+        audio.playSFX('sfxNewRecordResult');
     } else {
         newRecordMsg.classList.add('hidden');
+        audio.playSFX('sfxGameOver');
     }
 
     // Update UI for next start / game over screen
@@ -363,6 +457,7 @@ function gameOver() {
 
 startBtn.addEventListener('click', startGame);
 restartBtn.addEventListener('click', startGame);
+muteBtn.addEventListener('click', () => audio.toggleMute());
 
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {

@@ -133,6 +133,29 @@ button:hover {
     transform: scale(1.05);
 }
 
+.icon-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    pointer-events: auto;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.icon-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
 .score-board {
     background: rgba(255, 255, 255, 0.1);
     padding: 15px;
