@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Flappy Hands</title>
     <link rel="stylesheet" href="style.css">
     <!-- MediaPipe Dependencies -->
@@ -20,6 +21,10 @@
             <div id="ui-layer">
                 <div id="start-screen" class="screen active">
                     <h1>Flappy Hands</h1>
+                    <div class="score-board">
+                        <p>Weekly Best: <span id="start-weekly-best">0</span></p>
+                        <p>Last Score: <span id="start-last-score">0</span></p>
+                    </div>
                     <p>Pinch thumb & index to Start & Jump!</p>
                     <button id="start-btn">Start Game</button>
                     <!-- 移动端显示的简易提示 -->
@@ -28,9 +33,16 @@
                 <div id="game-over-screen" class="screen">
                     <h1>Game Over</h1>
                     <p>Score: <span id="final-score">0</span></p>
+                    <p id="new-record-msg" class="hidden">🏆 NEW WEEKLY RECORD! 🏆</p>
+                    <div class="score-board-small">
+                        <p>Weekly Best: <span id="end-weekly-best">0</span></p>
+                    </div>
                     <button id="restart-btn">Try Again</button>
                 </div>
-                <div id="score-display">0</div>
+                <div id="score-container">
+                    <div id="score-display">0</div>
+                    <div id="weekly-best-display">Best: <span id="hud-weekly-best">0</span></div>
+                </div>
             </div>
         </div>
 

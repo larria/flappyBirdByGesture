@@ -6,9 +6,39 @@ const ctx = canvas.getContext('2d');
 let gameState = 'START';
 let frames = 0;
 let score = 0;
-let highScore = localStorage.getItem('flappyHighScore') || 0;
+let highScore = localStorage.getItem('flappyHighScore') || 0; // Keep for legacy or all-time if needed, but we focus on weekly
+let weeklyHighScore = 0;
+let lastScore = 0;
 let countdownValue = 3;
 let lastTime = 0;
+
+// --- Helper: Get Week Number ---
+function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return weekNo;
+}
+
+// --- Init Scores from LocalStorage ---
+const currentWeek = getWeekNumber(new Date());
+const storedWeek = localStorage.getItem('flappyWeekNum');
+const storedWeeklyScore = localStorage.getItem('flappyWeeklyHighScore');
+const storedLastScore = localStorage.getItem('flappyLastScore');
+
+if (storedWeek && parseInt(storedWeek) === currentWeek) {
+    weeklyHighScore = parseInt(storedWeeklyScore) || 0;
+} else {
+    // New week or no data, reset weekly score
+    weeklyHighScore = 0;
+    localStorage.setItem('flappyWeekNum', currentWeek);
+    localStorage.setItem('flappyWeeklyHighScore', 0);
+}
+
+if (storedLastScore) {
+    lastScore = parseInt(storedLastScore);
+}
 
 // DOM Elements
 const scoreDisplay = document.getElementById('score-display');
@@ -17,6 +47,14 @@ const startScreen = document.getElementById('start-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const startBtn = document.getElementById('start-btn');
 const restartBtn = document.getElementById('restart-btn');
+const newRecordMsg = document.getElementById('new-record-msg');
+
+// New UI Elements
+const startWeeklyBest = document.getElementById('start-weekly-best');
+const startLastScore = document.getElementById('start-last-score');
+const endWeeklyBest = document.getElementById('end-weekly-best');
+const hudWeeklyBest = document.getElementById('hud-weekly-best');
+const weeklyBestDisplay = document.getElementById('weekly-best-display');
 
 // --- 物理引擎设置 (关键修改点) ---
 // 基准屏幕高度 (原本的设计高度)
@@ -151,6 +189,14 @@ const pipes = {
             if (pipe.x + pipe.w < bird.x && !pipe.passed) {
                 score++;
                 scoreDisplay.innerText = score;
+
+                // Check for new record during game
+                if (score > weeklyHighScore) {
+                    scoreDisplay.classList.add('new-record-pulse');
+                    weeklyBestDisplay.classList.add('new-record-highlight');
+                    hudWeeklyBest.innerText = score;
+                }
+
                 pipe.passed = true;
             }
 
@@ -202,6 +248,11 @@ function resizeCanvas() {
 // 初始化
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
+
+// Update Initial UI
+startWeeklyBest.innerText = weeklyHighScore;
+startLastScore.innerText = lastScore;
+hudWeeklyBest.innerText = weeklyHighScore;
 
 
 // --- 3. 游戏主循环 ---
@@ -269,12 +320,41 @@ function startGame() {
     score = 0;
     frames = 0;
     scoreDisplay.innerText = score;
+    hudWeeklyBest.innerText = weeklyHighScore; // Reset HUD to current high score
+    scoreDisplay.classList.remove('new-record-pulse'); // Reset effects
+    weeklyBestDisplay.classList.remove('new-record-highlight');
 }
 
 function gameOver() {
     gameState = 'GAMEOVER';
     finalScoreSpan.innerText = score;
     gameOverScreen.classList.add('active');
+
+    // Update Last Score
+    lastScore = score;
+    localStorage.setItem('flappyLastScore', lastScore);
+
+    let isNewRecord = false;
+    // Update Weekly High Score
+    if (score > weeklyHighScore) {
+        weeklyHighScore = score;
+        localStorage.setItem('flappyWeeklyHighScore', weeklyHighScore);
+        localStorage.setItem('flappyWeekNum', currentWeek); // Ensure week is current
+        isNewRecord = true;
+    }
+
+    if (isNewRecord) {
+        newRecordMsg.classList.remove('hidden');
+    } else {
+        newRecordMsg.classList.add('hidden');
+    }
+
+    // Update UI for next start / game over screen
+    endWeeklyBest.innerText = weeklyHighScore;
+    startWeeklyBest.innerText = weeklyHighScore;
+    startLastScore.innerText = lastScore;
+
+    // Legacy High Score (Optional, keep if you want all-time tracking too)
     if (score > highScore) {
         highScore = score;
         localStorage.setItem('flappyHighScore', highScore);
