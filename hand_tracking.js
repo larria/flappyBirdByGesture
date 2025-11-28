@@ -118,10 +118,16 @@ hands.onResults(onResults);
 // Initialize Camera
 const camera = new Camera(videoElement, {
     onFrame: async () => {
+        // Dynamic resize canvas to match video source aspect ratio
+        if (canvasElement.width !== videoElement.videoWidth || canvasElement.height !== videoElement.videoHeight) {
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+        }
         await hands.send({ image: videoElement });
     },
-    width: 320,
-    height: 240
+    // Remove fixed width/height to allow camera to use native resolution or auto-select
+    // width: 320,
+    // height: 240
 });
 
 camera.start()

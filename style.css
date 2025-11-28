@@ -256,7 +256,7 @@ button:hover {
 
 .output_canvas {
     width: 320px;
-    height: 240px;
+    height: auto;
     background: #000;
     border-radius: 4px;
     transform: scaleX(-1);
