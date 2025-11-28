@@ -115,6 +115,7 @@ if (storedLastScore) {
 }
 
 // DOM Elements
+const scoreContainer = document.getElementById('score-container');
 const scoreDisplay = document.getElementById('score-display');
 const finalScoreSpan = document.getElementById('final-score');
 const startScreen = document.getElementById('start-screen');
@@ -410,6 +411,7 @@ function startGame() {
     hudWeeklyBest.innerText = weeklyHighScore; // Reset HUD to current high score
     scoreDisplay.classList.remove('new-record-pulse'); // Reset effects
     weeklyBestDisplay.classList.remove('new-record-highlight');
+    scoreContainer.classList.remove('hidden');
 
     audio.playBGM('none'); // Stop home music
     audio.playSFX('sfxReady');
@@ -421,6 +423,7 @@ function gameOver() {
     audio.playBGM('none'); // Stop game music
     finalScoreSpan.innerText = score;
     gameOverScreen.classList.add('active');
+    scoreContainer.classList.add('hidden');
 
     // Update Last Score
     lastScore = score;
