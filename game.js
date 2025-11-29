@@ -240,10 +240,14 @@ const pipes = {
     update: function () {
         if (frames % PIPE_SPAWN_RATE === 0) {
             // [修改] Gap 也需要根据屏幕高度动态调整，否则在高屏幕上缝隙会显得太小
-            // 难度计算：每得2分减少5px的缝隙 (这里也按比例缩放减少量)
-            const scoreBasedReduction = (Math.floor(score / 2) * 5) * (canvas.height / BASE_HEIGHT);
+            // [修改] 动态难度调整：每得5分，间隙减少2%，最少保留原间隙的30%
+            const reductionFactor = Math.pow(0.98, Math.floor(score / 5));
+            let targetGap = currentInitialGap * reductionFactor;
+            let minAllowedGap = currentInitialGap * 0.30;
 
-            let currentGap = Math.max(currentMinGap, currentInitialGap - scoreBasedReduction);
+            let currentGap = Math.max(minAllowedGap, targetGap);
+
+
 
             const topHeight = Math.random() * (canvas.height - currentGap - 100) + 50;
             this.items.push({
